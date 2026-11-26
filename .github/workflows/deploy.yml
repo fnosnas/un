@@ -13,9 +13,16 @@ jobs:
 
       - uses: unikraft/setup-action@v1
 
+      - name: Check CLI auth options
+        env:
+          UKC_TOKEN: ${{ secrets.UKC_TOKEN }}
+        run: |
+          unikraft --help || true
+          unikraft login --help || true
+          test -n "$UKC_TOKEN" && echo "UKC_TOKEN is set" || echo "UKC_TOKEN is empty"
+
       - name: Build and push to Unikraft Cloud
         env:
           UKC_TOKEN: ${{ secrets.UKC_TOKEN }}
-          UKC_METRO: dal
         run: |
           unikraft build . --output musebot/ws-un:latest
