@@ -18,5 +18,4 @@ jobs:
           UKC_TOKEN: ${{ secrets.UKC_TOKEN }}
           UKC_METRO: dal
         run: |
-          unikraft login --token "${UKC_TOKEN}" || true
           unikraft build . --output musebot/ws-un:latest
