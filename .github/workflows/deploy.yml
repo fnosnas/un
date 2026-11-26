@@ -1,4 +1,4 @@
-name: Build Unikraft Artifact
+name: Build Unikraft OCI Archive
 
 on:
   push:
@@ -15,8 +15,15 @@ jobs:
 
       - uses: unikraft/setup-action@v1
 
-      - name: Build rootfs / image artifact
+      - name: Build OCI archive
         run: |
-          unikraft build --help || true
-          unikraft build .
-          ls -la
+          mkdir -p ./dist
+          unikraft build . --output ./dist/ws-un.oci.tar
+          ls -lh ./dist/ws-un.oci.tar
+
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create latest-build ./dist/ws-un.oci.tar --title "Latest Build" --notes "Unikraft OCI archive" || \
+          gh release upload latest-build ./dist/ws-un.oci.tar --clobber
