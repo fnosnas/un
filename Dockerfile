@@ -32,4 +32,4 @@ COPY --from=build /etc/ssl/certs /etc/ssl/certs
 
 # App files
 COPY --from=build /app /app
-COPY ./entrypoint.sh /entrypoint.sh
+COPY --chmod=0755 ./entrypoint.sh /entrypoint.sh
