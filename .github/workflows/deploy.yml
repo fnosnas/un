@@ -1,4 +1,4 @@
-name: Build Unikraft OCI Archive
+name: Build and Push to GHCR
 
 on:
   push:
@@ -9,21 +9,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
       - uses: unikraft/setup-action@v1
 
-      - name: Build OCI archive
-        run: |
-          mkdir -p ./dist
-          unikraft build . --output ./dist/ws-un.oci.tar
-          ls -lh ./dist/ws-un.oci.tar
-
-      - name: Upload to GitHub Release
+      - name: Log in to GHCR
         env:
-          GH_TOKEN: ${{ github.token }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create latest-build ./dist/ws-un.oci.tar --title "Latest Build" --notes "Unikraft OCI archive" || \
-          gh release upload latest-build ./dist/ws-un.oci.tar --clobber
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push OCI image to GHCR
+        run: |
+          unikraft build . --output ghcr.io/${{ github.repository_owner }}/ws-un:latest
