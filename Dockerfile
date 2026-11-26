@@ -1,5 +1,9 @@
 FROM node:24-bookworm-slim AS build
 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY package.json ./
 RUN npm install --omit=dev --no-audit --no-fund
@@ -23,7 +27,7 @@ COPY --from=build /lib64/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2
 COPY --from=build /etc/ld.so.cache /etc/ld.so.cache
 COPY --from=build /etc/os-release /etc/os-release
 
-# HTTPS 请求所需的 CA 根证书（连接 Komari 面板、TG 服务器、DNS 查询必须）
+# HTTPS 请求所需的 CA 根证书
 COPY --from=build /etc/ssl/certs /etc/ssl/certs
 
 # App files
