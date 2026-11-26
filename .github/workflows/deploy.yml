@@ -1,0 +1,22 @@
+name: Build Unikraft Image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Unikraft CLI
+        run: curl -sSfL https://get.unikraft.com/install.sh | sh
+
+      - name: Build and push to Unikraft Cloud
+        env:
+          UKC_TOKEN: ${{ secrets.UKC_TOKEN }}
+          UKC_METRO: dal
+        run: |
+          unikraft build . --output musebot/ws-un:latest
