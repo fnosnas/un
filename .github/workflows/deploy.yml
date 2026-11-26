@@ -13,15 +13,9 @@ jobs:
 
       - uses: unikraft/setup-action@v1
 
-      - name: Verify Unikraft CLI
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          unikraft --version
-
       - name: Build and push to Unikraft Cloud
         env:
           UKC_TOKEN: ${{ secrets.UKC_TOKEN }}
           UKC_METRO: dal
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           unikraft build . --output musebot/ws-un:latest
