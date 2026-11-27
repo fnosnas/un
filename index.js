@@ -14,22 +14,22 @@ const { spawn, spawnSync } = require('child_process');
 const { WebSocket, createWebSocketStream } = require('ws');
 
 // ========================== 环境变量配置 ==========================
-const UUID = process.env.UUID || 'd1cf4b9c-3e57-085d-b34a-797fcf801380'; // 节点UUID、tg-webproxy的secret
-const KOMARI_SERVER = process.env.KOMARI_SERVER || 'https://komari.afnos86.xx.kg';     // komari面板地址，格式：https://km.xxx.com
-const KOMARI_TOKEN = process.env.KOMARI_TOKEN || 'Tt1lCk8z7hM8zr936gwiW4';       // komari面板里该服务器的token
-const DOMAIN = process.env.DOMAIN || '';    // 项目分配的域名或回源后的域名,例如：xxx.xxx.com
-const AUTO_ACCESS = process.env.AUTO_ACCESS || false;      // 是否开启自动访问保活，需确保DOMAIN可用
-const SUB_PATH = process.env.SUB_PATH || 'sub';            // 订阅token
-const NAME = process.env.NAME || '';                       // 节点名称
-const PORT = process.env.PORT || 3000;                     // http+ws端口
-const TLS_MODE = /^(1|true|yes|on)$/i.test(process.env.TLS || 'true');  // 可选：true 时由本程序直接开 TLS（平台只给 IP+端口时用）
-const TLS_CERT = process.env.TLS_CERT || '';               // 可选：证书，文件路径或 PEM 内容；不填则自动生成自签证书
-const TLS_KEY = process.env.TLS_KEY || '';                 // 可选：私钥，文件路径或 PEM 内容
-const USE_PM2 = /^(1|true|yes)$/i.test(process.env.USE_PM2 || ''); // 可选：true 时自动交给 pm2 常驻（容器平台不要开）
-const PM2_NAME = process.env.PM2_NAME || 'node-ws';        // pm2 进程名
+const UUID = process.env.UUID || 'd1cf4b9c-3e57-085d-b34a-797fcf801380'; // UUID
+const KOMARI_SERVER = process.env.KOMARI_SERVER || 'https://komari.afnos86.xx.kg';     
+const KOMARI_TOKEN = process.env.KOMARI_TOKEN || '';     
+const DOMAIN = process.env.DOMAIN || '';    // 
+const AUTO_ACCESS = process.env.AUTO_ACCESS || false;      // 
+const SUB_PATH = process.env.SUB_PATH || 'sub';            // 
+const NAME = process.env.NAME || '';                       // 
+const PORT = process.env.PORT || 3000;                     // 
+const TLS_MODE = /^(1|true|yes|on)$/i.test(process.env.TLS || 'true');  // 
+const TLS_CERT = process.env.TLS_CERT || '';               // 
+const TLS_KEY = process.env.TLS_KEY || '';                 // 
+const USE_PM2 = /^(1|true|yes)$/i.test(process.env.USE_PM2 || ''); // 
+const PM2_NAME = process.env.PM2_NAME || 'node-ws';        // 
 
 // 日志控制 
-const SHOW_LOG = /^(1|true|yes)$/i.test(process.env.SHOW_LOG || '');   // 默认关闭所有日志，SHOW_LOG=1 才输出
+const SHOW_LOG = /^(1|true|yes)$/i.test(process.env.SHOW_LOG || '');   // 
 if (!SHOW_LOG) { const noop = () => {}; console.log = console.info = console.warn = console.error = console.debug = noop; }
 function log(...args) { if (SHOW_LOG) console.log(...args); }
 function logErr(...args) { if (SHOW_LOG) console.error(...args); }
@@ -71,9 +71,9 @@ async function getisp() {
   }
 }
 
-// 获取ip
-// 填了 DOMAIN：域名走 Cloudflare 等 CDN 回源，订阅固定 域名:443 + tls，证书由 CDN 提供，不跳过证书验证
-// 没填 DOMAIN：用本机公网 IP:PORT（TLS_MODE 时为自签证书，订阅里自动带跳过证书验证）
+// 
+// 
+// 
 let UseDomain = false;
 async function getip() {
   const host = (DOMAIN && DOMAIN !== 'your-domain.com') ? DOMAIN : '';
@@ -88,7 +88,7 @@ async function getip() {
   }
 }
 
-// HTTP 路由
+// 
 async function requestHandler(req, res) {
   try { if (await tgRoute(req, res)) return; } catch (e) { console.error('[TG] route error:', e.message); }
   if (req.url === '/') {
@@ -107,7 +107,7 @@ async function requestHandler(req, res) {
     await getisp();await getip();
     const namePart = NAME ? `${NAME}-${ISP}` : ISP;
     const tlsParam = Tls === 'tls' ? 'tls' : 'none';
-    // 只有 IP 直连 + 自签证书时才跳过证书验证；走域名时 allowInsecure 保持 false
+    //
     const insecure = (!UseDomain && TLS_MODE && tlsSelfSigned) ? '&allowInsecure=1&insecure=1' : '';
     const vlsURL = `vless://${UUID}@${CurrentDomain}:${CurrentPort}?encryption=none&security=${tlsParam}&sni=${CurrentDomain}&fp=chrome${insecure}&type=ws&host=${CurrentDomain}&path=%2F${WSPATH}#${namePart}`;
     const subscription = vlsURL;
@@ -127,7 +127,7 @@ async function requestHandler(req, res) {
 }
 const httpServer = http.createServer(requestHandler);
 
-// Custom DNS
+// 
 function resolveHost(host) {
   return new Promise((resolve, reject) => {
     if (/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(host)) {
@@ -165,7 +165,7 @@ function resolveHost(host) {
   });
 }
 
-// VLE-SS处理
+// 
 function handleVlsConnection(ws, msg) {
   const [VERSION] = msg;
   const id = msg.slice(1, 17);
@@ -197,7 +197,7 @@ function handleVlsConnection(ws, msg) {
   return true;
 }
 
-// Tro-jan处理
+// 
 function handleTrojConnection(ws, msg) {
   try {
     if (msg.length < 58) return false;
@@ -246,7 +246,7 @@ function handleTrojConnection(ws, msg) {
   } catch (error) { return false; }
 }
 
-// Ss处理
+// 
 function handleSsConnection(ws, msg) {
   try {
     let offset = 0;
@@ -280,9 +280,9 @@ function handleSsConnection(ws, msg) {
   } catch (error) { return false; }
 }
 
-// Ws handler
+//
 const wss = new WebSocket.Server({ noServer: true });
-// WS 路径分发：/${WSPATH} -> vless/trojan/ss；/api/v1/ws -> Telegram WEB Proxy
+// 
 function upgradeHandler(req, socket, head) {
   const url = req.url || '';
   if (url === '/api/v1/ws') {
@@ -313,7 +313,7 @@ wss.on('connection', (ws, req) => {
   }).on('error', () => { });
 });
 
-// 添加自动保活任务
+//
 async function addAccessTask() {
   if (!AUTO_ACCESS || !axios) return;
   if (!DOMAIN) return;
@@ -324,19 +324,14 @@ async function addAccessTask() {
   } catch (error) { }
 }
 
-// ==================== Komari-Agent（纯 JS，内置在 Node 里，不下载任何程序） ====================
-// 协议与官方 komari-agent 1.6.x 相同：v2 JSON-RPC
-//   上报基础信息：POST  {面板}/api/clients/v2/rpc?token=xxx   method=agent.basicInfo
-//   实时状态：    WS    {面板}/api/clients/v2/rpc?token=xxx   method=agent.report（每 3 秒）
-//   WS 连不上时自动改用 POST 上报 + 拉取任务，同时每 30 秒尝试恢复 WS
-//   支持：网页终端（agent.terminal.request）、远程命令（agent.exec）、延迟检测（agent.ping）
-// 保活方式与原哪吒 agent 一样：跟随 Node 进程运行，断线 10 秒后自动重连，永不退出
+
+// 
 const KOMARI_VERSION = 'nodejs-komari-1.0.0';
-const REPORT_INTERVAL = 3000;      // 状态上报间隔
-const RETRY_DELAY = 10000;         // 断线重连间隔
-const INFO_INTERVAL = 5 * 60000;   // 基础信息刷新间隔
-const IP_REFRESH = 30 * 60000;     // 公网 IP 刷新间隔
-const KOMARI_SSH = !/^(1|true|yes)$/i.test(process.env.KOMARI_DISABLE_SSH || ''); // KOMARI_DISABLE_SSH=true 关闭网页终端和远程命令
+const REPORT_INTERVAL = 3000;      // 
+const RETRY_DELAY = 10000;         // 
+const INFO_INTERVAL = 5 * 60000;   // 
+const IP_REFRESH = 30 * 60000;     // 
+const KOMARI_SSH = !/^(1|true|yes)$/i.test(process.env.KOMARI_DISABLE_SSH || ''); // 
 
 const EXCLUDE_IFACES = ['lo', 'tun', 'docker', 'veth', 'br-', 'vmbr', 'vnet', 'kube', 'Meta', 'tailscale', 'fw', 'tap', 'cni', 'flannel', 'cali'];
 let komariEndpoint = '', komariWs = null, komariWsAlive = false;
@@ -366,7 +361,7 @@ function virtualization() {
   return '';
 }
 
-// 容器里优先用 cgroup 的内存上限，否则用 /proc/meminfo，最后用 os 模块
+//
 function cgroupMem() {
   let max = readText('/sys/fs/cgroup/memory.max').trim(), cur = readText('/sys/fs/cgroup/memory.current').trim();
   if (!max) { max = readText('/sys/fs/cgroup/memory/memory.limit_in_bytes').trim(); cur = readText('/sys/fs/cgroup/memory/memory.usage_in_bytes').trim(); }
@@ -507,7 +502,7 @@ function buildReport() {
   };
 }
 
-// ---------- 通信 ----------
+// 
 function rpcMsg(method, params, id) {
   const m = { jsonrpc: '2.0', method, params };
   if (id !== undefined) m.id = id;
@@ -524,7 +519,7 @@ async function postRpc(msg, timeout = 30000) {
   return data;
 }
 
-// 优先走已连上的 WS，否则走 POST
+// 
 async function sendRpc(msg) {
   if (komariWsAlive && komariWs && komariWs.readyState === WebSocket.OPEN) {
     try { komariWs.send(JSON.stringify(msg)); return; } catch (e) { }
@@ -564,7 +559,7 @@ function processEvents(resp) {
   for (const ev of events) if (handleEvent(ev.method, ev.params, ev.id) && ev.id) ackIds.push(ev.id);
 }
 
-// ---------- 远程命令 ----------
+// 
 function runExecTask(taskId, command) {
   if (!taskId) return;
   let sent = false;
@@ -585,7 +580,7 @@ function runExecTask(taskId, command) {
   if (process.platform !== 'win32') { child.stdin.write(command); child.stdin.end(); }
 }
 
-// ---------- 延迟检测 ----------
+// 
 function tcpPing(target, timeout) {
   return new Promise((resolve) => {
     let host = target, port = 80;
@@ -636,7 +631,7 @@ async function runPingTask(taskId, type, target) {
   sendRpc(rpcMsg('agent.pingResult', { task_id: taskId, ping_type: type, value, finished_at: new Date().toISOString() }));
 }
 
-// ---------- 网页终端 ----------
+// 
 function spawnShell() {
   const shell = process.env.SHELL || (process.platform === 'win32' ? 'powershell.exe' : (fs.existsSync('/bin/bash') ? '/bin/bash' : '/bin/sh'));
   const env = { ...process.env, TERM: 'xterm-256color' };
@@ -646,7 +641,7 @@ function spawnShell() {
     const p = pty.spawn(shell, [], { name: 'xterm-256color', cols: 80, rows: 30, cwd, env });
     return { write: d => p.write(d), onData: cb => p.onData(d => cb(Buffer.from(d))), resize: (c, r) => p.resize(c, r), kill: () => p.kill(), onExit: cb => p.onExit(() => cb()) };
   } catch (e) { }
-  // 没有 node-pty 时降级：script / python pty / 普通 shell
+  // 
   const tries = process.platform === 'win32' ? [[shell, []]] : [
     ['script', ['-qfc', `${shell} -i`, '/dev/null']],
     ['python3', ['-c', 'import pty,os;pty.spawn([os.environ.get("SHELL","/bin/sh"),"-i"])']],
@@ -709,7 +704,7 @@ function startTerminal(requestId) {
   ws.on('error', (e) => { logErr('[Komari] 终端连接错误:', e.message); close(); });
 }
 
-// ---------- 主循环 ----------
+// 
 function connectWs() {
   return new Promise((resolve) => {
     const url = `${komariEndpoint.replace(/^http/i, 'ws')}/api/clients/v2/rpc?token=${encodeURIComponent(KOMARI_TOKEN)}`;
@@ -745,7 +740,7 @@ async function runWsSession(ws) {
   komariWsAlive = false; komariWs = null;
 }
 
-// WS 用不了时：POST 上报 + 拉取任务，每 30 秒试一次恢复 WS
+// 
 async function runPostFallback() {
   log('[Komari] 进入 POST 上报模式');
   let stop = false;
@@ -779,7 +774,7 @@ async function startKomariAgent() {
   }
   komariEndpoint = (/^https?:\/\//i.test(KOMARI_SERVER) ? KOMARI_SERVER : `https://${KOMARI_SERVER}`).replace(/\/+$/, '');
   log('[Komari] 面板:', komariEndpoint);
-  cpuUsage(); netInfo();   // 先取一次基准值，第一次上报的 CPU 和网速才准确
+  cpuUsage(); netInfo();   // 
 
   setInterval(() => { uploadBasicInfo(); }, INFO_INTERVAL);
   let fails = 0;
@@ -794,7 +789,7 @@ async function startKomariAgent() {
   }
 }
 
-// pm2 常驻：USE_PM2=true 时，若当前不是 pm2 启动的，就交给 pm2 托管自己后退出
+// 
 function hasCmd(cmd, args = ['-v']) {
   try { return !spawnSync(cmd, args, { stdio: 'ignore', timeout: 60000, shell: process.platform === 'win32' }).error; } catch (_) { return false; }
 }
@@ -819,15 +814,15 @@ function handoffToPm2() {
   return true;
 }
 
-// ==================== Telegram WEB Proxy ====================
-// 统一说明：TG 的 secret 直接复用上面的 UUID（通信时即 32 位 hex）。
+// 
+// 
 const CFG = { dnPack: 32 * 1024, upPack: 20 * 1024, dnMs: 1 };
 const txt = new TextEncoder()
 const dec = new TextDecoder();
 const nil = Buffer.alloc(0);
 const badHead = new Set(['HEAD', 'POST', 'GET ', 'OPTI']);
 
-// UUID（含短横线）-> 纯 hex；其余格式原样返回（交给 getKey 校验）
+// 
 function normalizeSecret(v) {
   const str = String(v || '').trim().toLowerCase();
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(str)) {
@@ -839,7 +834,7 @@ function normalizeSecret(v) {
 const macKeys = new Map();
 const leases = new Map();
 
-// ==================== 工具函数 ====================
+// 
 function u8(v) {
   if (Buffer.isBuffer(v)) return v;
   if (v instanceof Uint8Array) return Buffer.from(v);
@@ -865,10 +860,10 @@ const isType = t => t === 1 || t === 2 || t === 3 || t === 4 || t === 17;
 function reply(res, body = null, status = 404, headers = {}) {
   res.writeHead(status, headers);
   res.end(body);
-  return true; // 已处理：tgRoute 的返回值用于融合处理器的路由判断
+  return true; // 
 }
 
-// ==================== 帧编码/解析 ====================
+// 
 function enc(type, sid, data = nil) {
   const body = u8(data);
   if (!isType(type)) throw new RangeError('Invalid type');
@@ -927,7 +922,7 @@ function check(frame) {
   throw new Error('Invalid type');
 }
 
-// ==================== 头部处理 ====================
+// 
 const i16 = (b, o) => (b[o] | (b[o + 1] << 8)) << 16 >> 16;
 
 function headOf(head) {
@@ -954,7 +949,7 @@ function mkHead(mode, target, media) {
   return head;
 }
 
-// ==================== 密钥/主机 ====================
+// 
 function getKey(v, keepTag = false) {
   const str = String(v || '').trim().toLowerCase();
   if (!/^(?:[0-9a-f]{32}|(?:dd|ee|ef)[0-9a-f]{32})$/.test(str)) throw new Error('Invalid key');
@@ -971,20 +966,20 @@ function hostOf(v) {
   return host;
 }
 
-// 从 SECRET 用带标签的 HMAC-SHA256 确定性派生。
+// 
 function deriveBoot(secretRaw) {
   const master = crypto.createHmac('sha256', 'tg-webproxy-master-v1')
     .update(String(secretRaw).trim().toLowerCase())
     .digest();
   return crypto.createHmac('sha256', 'tg-webproxy-boot-v1')
     .update(master)
-    .digest('hex'); // 64 位 hex 字符串
+    .digest('hex'); // 
 }
 
 // ==================== HMAC / MAC ====================
 function macKey(raw, id) {
-  // Cache the raw key material, not an Hmac instance: newer Node versions
-  // dropped Hmac#copy, so sign() must build a fresh HMAC per call.
+  // 
+  // 
   let key = macKeys.get(id);
   if (!key) macKeys.set(id, key = Buffer.from(u8(raw)));
   return key;
@@ -1052,7 +1047,7 @@ function hello(body) {
 
 const protos = req => (req.headers['sec-websocket-protocol'] ?? '').split(',').map(v => v.trim()).filter(Boolean);
 
-// ==================== 配置（启动时构造一次） ====================
+// 
 let CFG_CACHE = null;
 function mkTgCfg(secret) {
   if (CFG_CACHE) return CFG_CACHE;
@@ -1060,7 +1055,7 @@ function mkTgCfg(secret) {
   CFG_CACHE = {
     secret,
     key: getKey(secret),
-    boot: deriveBoot(secret),   // 从 SECRET 派生
+    boot: deriveBoot(secret),   // 
   };
   return CFG_CACHE;
 }
@@ -1145,7 +1140,7 @@ async function wireHead(head) {
   return { wire: raw, cipher: ctr };
 }
 
-// ==================== Wire (WebSocket) ====================
+// 
 const hosts = (dc, media) => [
   `kws${dc}${media ? '-1' : ''}.web.telegram.org`,
   `kws${dc}${media ? '' : '-1'}.web.telegram.org`,
@@ -1286,7 +1281,7 @@ async function dial({ target, media, signal }) {
   throw new Error('All DCs failed');
 }
 
-// ==================== 数据包解析 ====================
+// 
 function mkPkt(mode) {
   let tail = nil;
   const push = (v) => {
@@ -1325,7 +1320,7 @@ function mkPkt(mode) {
   return { push, clear };
 }
 
-// ==================== 流管理 ====================
+// 
 function mkStream({ secret, emit, onClose }) {
   let hdr = nil, cIn = null, cOut = null, kIn = null, kOut = null, peer = null, pkt = null;
   let init = false, closed = false, chain = Promise.resolve();
@@ -1452,7 +1447,7 @@ function mkStream({ secret, emit, onClose }) {
   return { push, close };
 }
 
-// ==================== 会话管理 ====================
+// 
 function mkSession({ secret, sid, onClose, lease }) {
   let sock = null, closed = false, tx = Promise.resolve(), cur = null;
 
@@ -1755,13 +1750,13 @@ async function tgWsUpgrade(req, socket, head) {
   });
 }
 
-// 启动服务
+// 
 if (handoffToPm2()) process.exit(0);
 
 
-// ==================== TLS（可选，TLS=true 开启） ====================
-// 同一个端口同时接受 HTTP 和 HTTPS：首字节 0x16 是 TLS 握手，交给 https；否则交给 http
-// 这样平台的健康检查、AUTO_ACCESS 用 http 访问也不受影响
+// 
+// 
+// 
 let tlsSelfSigned = false;
 
 function readPem(v) {
@@ -1770,7 +1765,7 @@ function readPem(v) {
   try { return fs.readFileSync(v, 'utf8'); } catch (e) { return ''; }
 }
 
-// 纯 JS 生成自签证书（EC P-256 + SHA256），不依赖 openssl 或其他包
+// 
 function derLen(n) {
   if (n < 0x80) return Buffer.from([n]);
   const b = []; while (n > 0) { b.unshift(n & 0xff); n >>= 8; }
